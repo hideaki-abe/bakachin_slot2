@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <title>バカチンスロット</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" media="screen" href="style.css">
+    <link href="https://fonts.googleapis.com/earlyaccess/nicomoji.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+</head>
+
+<body>
+
+    <div class="slot">
+        <!-- リールフレーム -->
+        <div id="slot-frame">
+            <!-- リール右 -->
+            <ul class="reels">
+                <li class="reel" data-val="gu"><img src="./img/gu.png"></li>
+                <li class="reel" data-val="bakachinga"><img src="./img/bakachinga.png"></li> <!-- index 7 -->
+                <li class="reel" data-val="seven"><img src="./img/seven.jpg"></li> <!-- index 6 -->
+                <li class="reel" data-val="pa"><img src="./img/pa.png"></li> <!-- index 5 -->
+                <li class="reel" data-val="bakachin3"><img src="./img/bakachin3.jpg"></li> <!-- index 4 -->
+                <li class="reel" data-val="choki"><img src="./img/choki.png"></li> <!-- index 3 -->
+                <li class="reel" data-val="bakachin4"><img src="./img/bakachin4.jpg"></li> <!-- index 2 -->
+                <li class="reel" data-val="bakachin2"><img src="./img/bakachin2.png"></li><!-- index 1 -->
+                <li class="reel" data-val="gu"><img src="./img/gu.png"></li> <!-- index 0 初期値 -->
+                <li class="reel" data-val="bakachinga"><img src="./img/bakachinga.png"></li>
+            </ul>
+            <!-- リール中央 -->
+            <ul class="reels">
+                <li class="reel" data-val="choki"><img src="./img/choki.png"></li>
+                <li class="reel" data-val="bakachin4"><img src="./img/bakachin4.jpg"></li>
+                <li class="reel" data-val="pa"><img src="./img/pa.png"></li>
+                <li class="reel" data-val="bakachinga"><img src="./img/bakachinga.png"></li>
+                <li class="reel" data-val="seven"><img src="./img/seven.jpg"></li>
+                <li class="reel" data-val="bakachin3"><img src="./img/bakachin3.jpg"></li>
+                <li class="reel" data-val="bakachin2"><img src="./img/bakachin2.png"></li>
+                <li class="reel" data-val="gu"><img src="./img/gu.png"></li>
+                <li class="reel" data-val="choki"><img src="./img/choki.png"></li> <!-- index 0 初期値 -->
+                <li class="reel" data-val="bakachin4"><img src="./img/bakachin4.jpg"></li>
+            </ul>
+            <!-- リール左 -->
+            <ul class="reels">
+                <li class="reel" data-val="bakachin4"><img src="./img/bakachin4.jpg"></li>
+                <li class="reel" data-val="choki"><img src="./img/choki.png"></li>
+                <li class="reel" data-val="bakachinga"><img src="./img/bakachinga.png"></li>
+                <li class="reel" data-val="bakachin3"><img src="./img/bakachin3.jpg"></li>
+                <li class="reel" data-val="bakachin2"><img src="./img/bakachin2.png"></li>
+                <li class="reel" data-val="gu"><img src="./img/gu.png"></li>
+                <li class="reel" data-val="seven"><img src="./img/seven.jpg"></li>
+                <li class="reel" data-val="pa"><img src="./img/pa.png"></li>
+                <li class="reel" data-val="bakachin4"><img src="./img/bakachinga.png"></li> <!-- index 0 初期値 -->
+                <li class="reel" data-val="choki"><img src="./img/choki.png"></li>
+            </ul>
+        </div>
+    </div>
+    </div>
+    <!-- 当たり画面 -->
+    <div id="hit">
+    </div>
+
+    <!-- ストップ/スタート/ミュージックボタン -->
+    <div>
+        <button type="button" class="stop-btn" data-val="0" disabled="true">STOP</button>
+        <button type="button" class="stop-btn" data-val="1" disabled="true">STOP</button>
+        <button type="button" class="stop-btn" data-val="2" disabled="true">STOP</button>
+        <div class="start-music-btn">
+        <div>
+            <button type="button" id="start-btn">START</button>
+        </div>
+        <div>
+            <button type="button" class="music-btn">♫</button>
+        </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+    <!-- ボタンクリック効果音 -->
+    <audio src="./audio/bakachinga-song.m4a" id="play-btn-music" preload="auto"></audio>
+    <audio src="./audio/bakachin.m4a" id="play-btn-start" preload="auto"></audio>
+    <audio src="./audio/stop.mp3" id="play-btn-stop" preload="auto"></audio>
+    <source src="./movie/bamachinga-hit.mp4" id="bakachin-movie" autoplay>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        //変数定義
+        let sec = 500;          //リール回転速度
+        let stopReelFlag = [];  //リール停止フラグ
+        let reelCounts = [];    //どの画像をどの位置にさせるか
+        let slotFrameHeight;    //フレームサイズ
+        let slotReelsHeight;    //リール(画像)全体サイズ
+        let slotReelItemHeight; //リール(画像)1個サイズ
+        let slotReelStartHeight;//画像の初期値
+        let slot_pattern = [];
+        let hit_img;
+        let hit = document.getElementById("hit");
+        let slot_frame = document.getElementById("slot-frame");
+        let reel = document.getElementsByClassName("reel");
+        let reels = document.getElementsByClassName("reels");
+        let start_btn = document.getElementById("start-btn");
+        let stop_btn = document.getElementsByClassName("stop-btn");
+
+        let Slot = {
+            init: function () {
+                stopReelFlag[0] = stopReelFlag[1] = stopReelFlag[2] = false;
+                reelCounts[0] = reelCounts[1] = reelCounts[2] = 0;
+            },
+            // スタートボタン機能
+            start: function () {
+                Slot.init();
+                for (let index = 0; index < 3; index++) {
+                    Slot.animation(index);
+                    // スタートボタンクリック音
+                    $('#play-btn-start').currentTime = 0;
+                    $("#play-btn-start").get(0).play();
+                }
+            },
+            //ストップボタン機能
+            stop: function (i) {
+                stopReelFlag[i] = true;
+                if (stopReelFlag[0] && !stopReelFlag[1] && !stopReelFlag[2]) {
+                    slot_pattern.push(reels[0].children[8 - reelCounts[0]].getAttribute('data-val'));
+                } else if (stopReelFlag[0] && stopReelFlag[1] && !stopReelFlag[2]) {
+                    slot_pattern.push(reels[1].children[8 - reelCounts[1]].getAttribute('data-val'));
+                } else if (stopReelFlag[0] && stopReelFlag[1] && stopReelFlag[2]) {
+                    slot_pattern.push(reels[2].children[8 - reelCounts[2]].getAttribute('data-val'));
+                }
+                if (stopReelFlag[0] && stopReelFlag[1] && stopReelFlag[2]) {
+                    start_btn.removeAttribute("disabled");
+                    if (slot_pattern.every(value => value === slot_pattern[0])) {
+                        hit_img = slot_pattern[0];
+                        Slot.hit();
+                    };
+                    slot_pattern = [];
+                }
+                // ストップボタンクリック音
+                $('#play-btn-stop').currentTime = 0;
+                $("#play-btn-stop").get(0).play();
+            },
+            //当たり演出
+            hit: function () {
+                let hit_message;
+                if (hit_img == "bakachinga") {
+                    hit_message = "おめでチンガー！！";
+                }
+                if (hit_img == "bakachin2") {
+                    hit_message = "うれチンガー！！";
+                }
+                if (hit_img == "bakachin3") {
+                    hit_message = "おめでチンガー！！";
+                }
+                if (hit_img == "bakachin4") {
+                    hit_message = "うれチンガー！！！";
+                }
+                if (hit_img == "gu") {
+                    hit_message = "グ～チンガ―！！！";
+                }
+                if (hit_img == "choki") {
+                    hit_message = "チョ～チンガ―！！";
+                }
+                if (hit_img == "pa") {
+                    hit_message = "パ～チンガ―！！！";
+                }
+                if (hit_img == "seven") {
+                    hit_message = "おめでチンガー！！";
+                }
+                hit_img = document.querySelectorAll(`[data-val="${hit_img}"]`);
+                hit_img = hit_img[1].innerHTML;
+                setTimeout(() => {
+                    hit.innerHTML = hit_img;
+                    hit.innerHTML += `<span id='hit_message'>${hit_message}</span>`;
+                }, 1000);
+                setTimeout(() => {
+                    hit.innerHTML = "";
+                }, 5000);
+            },
+            //位置
+            resetLocationInfo: function () {
+                slotFrameHeight = slot_frame.offsetHeight;
+                slotReelsHeight = reels[0].offsetHeight;
+                slotReelItemHeight = reel[0].offsetHeight;
+                slotReelStartHeight = -slotReelsHeight;
+                slotReelStartHeight = slotReelStartHeight + slotFrameHeight
+                    - (slotFrameHeight / 2) + slotReelItemHeight * 3 / 2;
+                for (let i = 0; i < reels.length; i++) {
+                    reels[i].style.top = String(slotReelStartHeight) + "px";
+                }
+            },
+            //アニメーション
+            animation: function (index) {
+                if (reelCounts[index] >= 8) {
+                    reelCounts[index] = 0;
+                }
+                $('.reels').eq(index).animate({
+                    'top': slotReelStartHeight + (reelCounts[index] * slotReelItemHeight)
+                }, {
+                    duration: sec,
+                    easing: 'linear',
+                    complete: function () {
+                        if (stopReelFlag[index]) {
+                            return;
+                        }
+                        reelCounts[index]++;
+                        Slot.animation(index);
+                    }
+                });
+            },
+        };
+
+        window.onload = function () {
+            Slot.init();
+            Slot.resetLocationInfo();
+            start_btn.addEventListener("click", function (e) {
+                e.target.setAttribute("disabled", true)
+                Slot.start();
+                for (let i = 0; i < stop_btn.length; i++) {
+                    stop_btn[i].removeAttribute("disabled");
+                }
+            });
+            for (let i = 0; i < stop_btn.length; i++) {
+                stop_btn[i].addEventListener("click", function (e) {
+                    Slot.stop(e.target.getAttribute('data-val'));
+                })
+            }
+        };
+
+        
+        // ミュージックボタンクリック音
+        $('.music-btn').click(function () {
+            $('#play-btn-music').currentTime = 0;
+            $("#play-btn-music").get(0).play();
+            alert("テーマソング「愛ある説教 バカチンガー」をお聴きください♪")
+        });   
+    </script>
+
+</body>
+
+</html>
